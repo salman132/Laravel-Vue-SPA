@@ -8,14 +8,14 @@
                         <div class="card-header">Login</div>
 
                         <div class="card-body">
-                            <form>
+                            <form @submit.prevent="doLogin">
 
 
                                 <div class="form-group row">
                                     <label for="email" class="col-md-4 col-form-label text-md-right">E-Mail Address</label>
 
                                     <div class="col-md-6">
-                                        <input id="email" type="email" class="form-control " name="email"  required autocomplete="email" autofocus>
+                                        <input id="email" type="email" class="form-control " name="email" v-model="email"  required autocomplete="email" autofocus>
 
 
                                     </div>
@@ -25,7 +25,7 @@
                                     <label for="password" class="col-md-4 col-form-label text-md-right">Password</label>
 
                                     <div class="col-md-6">
-                                        <input id="password" type="password" class="form-control " required autocomplete="current-password">
+                                        <input id="password" type="password" class="form-control" v-model="password" required autocomplete="current-password">
 
                                     </div>
                                 </div>
@@ -33,7 +33,7 @@
                                 <div class="form-group row">
                                     <div class="col-md-6 offset-md-4">
                                         <div class="form-check">
-                                            <input class="form-check-input" type="checkbox" name="remember" id="remember">
+                                            <input class="form-check-input" type="checkbox" v-model="rememberMe" name="remember" id="remember">
 
                                             <label class="form-check-label" for="remember">
                                               Remember Me
@@ -71,11 +71,30 @@
         name: 'Login',
         data(){
             return{
-
+                email: null,
+                password: null,
+                rememberMe:false,
             }
         },
         components:{
             Navbar: Navbar
+        },
+        methods:{
+            doLogin:function () {
+                if(this.email && this.password && this.rememberMe){
+                    let url = '/api/sign_in';
+                    axios.post(url,{
+                        email: this.email,
+                        password: this.password,
+                        remember_me: this.remember_me,
+                    }).then(response =>{
+                        const token = response.data.token;
+                        localStorage.setItem('access_token',token);
+                    }).catch(error =>{
+                        console.log(error)
+                    })
+                }
+            }
         }
     }
 </script>

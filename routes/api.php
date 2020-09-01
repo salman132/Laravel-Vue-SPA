@@ -21,5 +21,18 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-Route::post('/sign_in','ApiAuthController@login');
-Route::post('/sign_up','ApiAuthController@register');
+Route::group(['middleware'=>['web','auth:api']],function (){
+    Route::get('/logout',function (){
+        dd("hi");
+    });
+});
+
+
+Route::group(['middleware' => ['cors', 'json.response']], function () {
+    Route::post('/sign_in','ApiAuthController@login');
+    Route::post('/sign_up','ApiAuthController@register');
+});
+
+
+
+

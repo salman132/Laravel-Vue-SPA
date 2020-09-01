@@ -17,23 +17,24 @@ class ApiAuthController extends Controller
            'remember_me' => 'boolean'
        ]);
 
+
        $credentials = request(['email','password']);
 
        if(!Auth::attempt($credentials)){
-           return response()->json(['message','Access denied'],403);
+           return response()->json(['message'=>'Access denied']);
        }
 
        $user = $request->user();
 
-       $tokenResult = $user->createToken('Personal Access Token');
-       $token = $tokenResult->token;
+       $token = $user->createToken('Laravel Password Grant Client')->accessToken;
+       $response = ['token' => $token];
+
 
        if($request->remember_me){
             $token->expires_at = Carbon::now()->addWeeks(1);
        }
 
-       $token->save();
-       return response()->json(['success','Login Successful',400]);
+       return response()->json($response);
    }
 
    public function register(Request $request){
@@ -46,18 +47,28 @@ class ApiAuthController extends Controller
        ]);
 
 
-
        try{
            $user = new User();
            $user->name = $request->name;
            $user->email = $request->email;
            $user->password = Hash::make($request->password);
            $user->save();
+
+           $token = $user->createToken('Laravel Password Grant Client')->accessToken;
+           $response = ['token' => $token];
        }
        catch (\Exception $exception){
            return response()->json($exception->getMessage());
        }
        return response()->json(['message' => 'Registration Success']);
+   }
+
+   public function logout(Request $request){
+       $request->user()->token()->revoke();
+
+       return response()->json([
+           'message' => 'Successfully logged out'
+       ]);
    }
 
 }

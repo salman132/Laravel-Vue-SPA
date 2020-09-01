@@ -17,6 +17,7 @@
     <body>
 
         <div id="app">
+
             <Navbar></Navbar>
             <router-view></router-view>
         </div>

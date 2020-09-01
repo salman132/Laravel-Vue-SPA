@@ -15,6 +15,7 @@ import routes from './router/index'
 import Welcome from './components/Welcome';
 import Login from "./components/Login";
 import Navbar from "./components/Navbar";
+import Home from "./components/pages/Home"
 
 
 
@@ -24,6 +25,7 @@ const app = new Vue({
     components:{
         'Welcome': Welcome,
         'Login' : Login,
-        'Navbar' : Navbar
+        'Navbar' : Navbar,
+        'Home' : Home,
     }
 });
