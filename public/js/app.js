@@ -1982,14 +1982,23 @@ __webpack_require__.r(__webpack_exports__);
     return {
       email: null,
       password: null,
-      rememberMe: false
+      rememberMe: false,
+      token: null,
+      accept: 'application/json',
+      authorization: null,
+      auth: false
     };
   },
   components: {
     Navbar: _Navbar__WEBPACK_IMPORTED_MODULE_0__["default"]
   },
+  created: function created() {
+    this.isTokenSet();
+  },
   methods: {
     doLogin: function doLogin() {
+      var _this = this;
+
       if (this.email && this.password && this.rememberMe) {
         var url = '/api/sign_in';
         axios.post(url, {
@@ -1999,8 +2008,49 @@ __webpack_require__.r(__webpack_exports__);
         }).then(function (response) {
           var token = response.data.token;
           localStorage.setItem('access_token', token);
+
+          _this.isTokenSet();
         })["catch"](function (error) {
           console.log(error);
+        });
+      }
+    },
+    isTokenSet: function isTokenSet() {
+      var _this2 = this;
+
+      var store = localStorage.getItem('access_token');
+
+      if (store !== 'undefined') {
+        this.authorization = 'Bearer ' + store;
+      }
+
+      var url = 'api/user';
+      axios.get(url, {
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': this.authorization
+        }
+      }).then(function (response) {
+        if (response.data.email) {
+          _this2.auth = true;
+          _this2.email = response.data.email;
+
+          _this2.redirectIfAuth();
+        } else {
+          _this2.auth = false;
+          _this2.email = null;
+        }
+      })["catch"](function (error) {
+        console.log(error);
+      });
+    },
+    redirectIfAuth: function redirectIfAuth() {
+      if (this.auth && this.email) {
+        this.$router.push({
+          name: "Home",
+          params: {
+            email: this.email
+          }
         });
       }
     }
@@ -2057,10 +2107,77 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
+//
+//
+//
+//
+//
 /* harmony default export */ __webpack_exports__["default"] = ({
   name: 'Navbar',
   data: function data() {
-    return {};
+    return {
+      email: null,
+      auth: false
+    };
+  },
+  created: function created() {
+    this.isTokenSet();
+  },
+  methods: {
+    isTokenSet: function isTokenSet() {
+      var _this = this;
+
+      var store = localStorage.getItem('access_token');
+
+      if (store !== 'undefined') {
+        this.authorization = 'Bearer ' + store;
+      }
+
+      var url = 'api/user';
+      axios.get(url, {
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': this.authorization
+        }
+      }).then(function (response) {
+        if (response.data.email) {
+          _this.auth = true;
+        } else {
+          _this.auth = false;
+        }
+      })["catch"](function (error) {
+        console.log(error);
+      });
+    },
+    logout: function logout() {
+      var _this2 = this;
+
+      var url = "api/logout";
+      var store = localStorage.getItem('access_token');
+
+      if (store !== undefined) {
+        store = "Bearer " + store;
+      }
+
+      console.log(store);
+      axios.post(url, {
+        'Accept': 'application/json'
+      }, {
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': store
+        }
+      }).then(function (response) {
+        console.log(response);
+        localStorage.removeItem('access_token');
+
+        _this2.$router.push({
+          name: 'Login'
+        });
+      })["catch"](function (error) {
+        console.log(error);
+      });
+    }
   }
 });
 
@@ -2154,6 +2271,8 @@ __webpack_require__.r(__webpack_exports__);
   },
   methods: {
     doRegister: function doRegister() {
+      var _this = this;
+
       if (this.password !== this.confirmPassword) {
         this.feedback = "Password not matched";
       }
@@ -2169,7 +2288,9 @@ __webpack_require__.r(__webpack_exports__);
           email: this.email,
           password: this.password
         }).then(function (response) {
-          console.log(response);
+          _this.$router.push({
+            name: 'Login'
+          });
         })["catch"](function (error) {
           console.log(error);
         });
@@ -2239,6 +2360,7 @@ __webpack_require__.r(__webpack_exports__);
 //
 /* harmony default export */ __webpack_exports__["default"] = ({
   name: 'Home',
+  props: ['email'],
   data: function data() {
     return {};
   }
@@ -38722,7 +38844,7 @@ var render = function() {
                           "router-link",
                           {
                             staticClass: "nav-link",
-                            attrs: { to: { name: "Home" } }
+                            attrs: { to: { name: "Welcome" } }
                           },
                           [_vm._v("Logo")]
                         )
@@ -38732,37 +38854,55 @@ var render = function() {
                     _vm._v(" "),
                     _c("div", { staticClass: "col-md-6" }, [
                       _c("div", { staticClass: "row" }, [
-                        _c(
-                          "div",
-                          { staticClass: "col-md-6 text-right" },
-                          [
-                            _c(
-                              "router-link",
-                              {
-                                staticClass: "nav-link text-right",
-                                attrs: { to: { name: "Login" } }
-                              },
-                              [_vm._v("Login")]
+                        !_vm.auth
+                          ? _c(
+                              "div",
+                              { staticClass: "col-md-6 text-right" },
+                              [
+                                _c(
+                                  "router-link",
+                                  {
+                                    staticClass: "nav-link text-right",
+                                    attrs: { to: { name: "Login" } }
+                                  },
+                                  [_vm._v("Login")]
+                                )
+                              ],
+                              1
                             )
-                          ],
-                          1
-                        ),
+                          : _vm._e(),
                         _vm._v(" "),
-                        _c(
-                          "div",
-                          { staticClass: "col-md-6 text-left" },
-                          [
-                            _c(
-                              "router-link",
-                              {
-                                staticClass: "nav-link",
-                                attrs: { to: { name: "Register" } }
-                              },
-                              [_vm._v("Register")]
+                        !_vm.auth
+                          ? _c(
+                              "div",
+                              { staticClass: "col-md-6 text-left" },
+                              [
+                                _c(
+                                  "router-link",
+                                  {
+                                    staticClass: "nav-link",
+                                    attrs: { to: { name: "Register" } }
+                                  },
+                                  [_vm._v("Register")]
+                                )
+                              ],
+                              1
                             )
-                          ],
-                          1
-                        )
+                          : _vm._e(),
+                        _vm._v(" "),
+                        _vm.auth
+                          ? _c("div", { staticClass: "col-md-6 text-left" }, [
+                              _c(
+                                "a",
+                                {
+                                  staticClass: "nav-link",
+                                  attrs: { href: "#" },
+                                  on: { click: _vm.logout }
+                                },
+                                [_vm._v("Logout")]
+                              )
+                            ])
+                          : _vm._e()
                       ])
                     ])
                   ])
@@ -39104,18 +39244,11 @@ var render = function() {
   var _vm = this
   var _h = _vm.$createElement
   var _c = _vm._self._c || _h
-  return _vm._m(0)
+  return _c("div", { staticClass: "home" }, [
+    _c("h2", [_vm._v("Welcome " + _vm._s(_vm.email))])
+  ])
 }
-var staticRenderFns = [
-  function() {
-    var _vm = this
-    var _h = _vm.$createElement
-    var _c = _vm._self._c || _h
-    return _c("div", { staticClass: "home" }, [
-      _c("h2", [_vm._v("Welcome to homepage")])
-    ])
-  }
-]
+var staticRenderFns = []
 render._withStripped = true
 
 
@@ -54812,6 +54945,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _components_Welcome__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../components/Welcome */ "./resources/js/components/Welcome.vue");
 /* harmony import */ var _components_Login__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../components/Login */ "./resources/js/components/Login.vue");
 /* harmony import */ var _components_Register__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../components/Register */ "./resources/js/components/Register.vue");
+/* harmony import */ var _components_pages_Home__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../components/pages/Home */ "./resources/js/components/pages/Home.vue");
+
 
 
 
@@ -54822,7 +54957,7 @@ var routes = new vue_router__WEBPACK_IMPORTED_MODULE_1__["default"]({
   mode: 'history',
   routes: [{
     path: "/",
-    name: 'Home',
+    name: 'Welcome',
     component: _components_Welcome__WEBPACK_IMPORTED_MODULE_2__["default"]
   }, {
     path: '/signIn',
@@ -54832,6 +54967,19 @@ var routes = new vue_router__WEBPACK_IMPORTED_MODULE_1__["default"]({
     path: 'register',
     name: 'Register',
     component: _components_Register__WEBPACK_IMPORTED_MODULE_4__["default"]
+  }, {
+    path: '/home',
+    name: 'Home',
+    component: _components_pages_Home__WEBPACK_IMPORTED_MODULE_5__["default"],
+    beforeEnter: function beforeEnter(to, from, next) {
+      if (to.params.email) {
+        next();
+      } else {
+        next({
+          name: 'Login'
+        });
+      }
+    }
   }]
 });
 /* harmony default export */ __webpack_exports__["default"] = (routes);

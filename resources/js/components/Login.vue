@@ -74,10 +74,19 @@
                 email: null,
                 password: null,
                 rememberMe:false,
+                token: null,
+                accept: 'application/json',
+                authorization:null,
+                auth: false,
+
             }
         },
         components:{
             Navbar: Navbar
+        },
+
+        created(){
+         this.isTokenSet();
         },
         methods:{
             doLogin:function () {
@@ -88,12 +97,51 @@
                         password: this.password,
                         remember_me: this.remember_me,
                     }).then(response =>{
+
                         const token = response.data.token;
                         localStorage.setItem('access_token',token);
+                        this.isTokenSet();
                     }).catch(error =>{
                         console.log(error)
                     })
                 }
+            },
+            isTokenSet:function () {
+                let store = localStorage.getItem('access_token');
+                if(store !== 'undefined'){
+                    this.authorization = 'Bearer '+store;
+
+                }
+                let url = 'api/user';
+                axios.get(url,{
+                    headers:{
+                        'Accept': 'application/json',
+                        'Authorization': this.authorization,
+                    }
+                }).then(response =>{
+
+
+                    if(response.data.email){
+                        this.auth = true;
+                        this.email = response.data.email;
+                        this.redirectIfAuth();
+
+                    }
+                    else{
+
+                        this.auth = false;
+                        this.email = null;
+                    }
+                }).catch(error =>{
+                    console.log(error)
+                })
+            },
+            redirectIfAuth:function () {
+
+             if(this.auth && this.email){
+
+                 this.$router.push({name: "Home",params: {email:this.email}})
+             }
             }
         }
     }

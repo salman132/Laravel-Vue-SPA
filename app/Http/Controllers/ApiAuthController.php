@@ -18,7 +18,7 @@ class ApiAuthController extends Controller
        ]);
 
 
-       $credentials = request(['email','password']);
+       $credentials = request(['email','password','remember_me']);
 
        if(!Auth::attempt($credentials)){
            return response()->json(['message'=>'Access denied']);
@@ -40,11 +40,6 @@ class ApiAuthController extends Controller
    public function register(Request $request){
 
 
-       $request->validate([
-           'name' => 'required|string',
-           'email' => 'required|string|email|unique:users',
-           'password' => 'required|string'
-       ]);
 
 
        try{
